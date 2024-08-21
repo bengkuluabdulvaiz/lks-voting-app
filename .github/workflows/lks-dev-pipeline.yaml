@@ -5,8 +5,9 @@ on:
     branches:
       - "Dev"
     paths:
-      - .github/workflows/workflowslks-dev-pipeline.yaml
+      - .github/lks-dev-pipeline.yaml
       - "worker/**"
+      - docker-stack.yaml
 
 env:
   AWS_REGION: us-east-1                 
@@ -21,7 +22,7 @@ jobs:
   build:
     name: Build Image Dev
     runs-on: ubuntu-latest
-    environment: Production
+    environment: Development
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -146,3 +147,18 @@ jobs:
         # Build docker images for vote module and push it to ECR so that it can be deployed to EKS
         run: |
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$WORKER_IMAGE_TAG   
+  deploy:  
+    name: Deploy Application into docker swarm
+    runs-on: master
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Deploy application images to Docker Swarm
+        run: |
+          docker node ls
+          docker service ls
+          docker stack ls
+          docker stack rm stackdemo
+          sleep 30
+          docker stack deploy --compose-file docker-stack.yml stackdemo
